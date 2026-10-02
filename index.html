@@ -178,7 +178,7 @@
         <div class="tags">NIFTY • BANKNIFTY • OPTIONS</div>
         <div class="sub-title">Daily Intraday Trading Signals & Analysis</div>
 
-        <!-- CTA Button with ID for JS Tracking -->
+        <!-- CTA Button -->
         <button id="telegramLink" class="cta-btn" onclick="trackButtonClick()">
             🚀 Join Free Telegram Channel
         </button>
@@ -209,33 +209,58 @@
     </div>
 
     <script>
-        var isClicked = false;
-        // Agar dusri link rakhni ho to yahan badal sakte hain
-        var telegramUrl = "https://t.me/+LT2Sb4jYCfhjZmQ1"; 
+        // Original Telegram Link
+        var telegramUrl = "https://t.me/+LT2Sb4jYCfhjZmQ1";
 
         function trackButtonClick() {
-            if (!isClicked) {
-                isClicked = true;
+            var btn = document.getElementById('telegramLink');
 
-                // 1. Facebook Pixel Events Fire Honge
-                if (typeof fbq !== 'undefined') {
-                    fbq('trackCustom', 'TelegramBtnClick'); 
-                    fbq('track', 'Subscribe'); 
-                }
+            // 1. Check: Kya user is browser session me pehle click kar chuka hai?
+            if (sessionStorage.getItem('telegram_clicked') === 'true') {
+                window.location.href = telegramUrl;
+                return;
+            }
 
-                // 2. Button ko disable aur fade karein
-                var btn = document.getElementById('telegramLink');
-                if (btn) {
-                    btn.style.pointerEvents = 'none';
-                    btn.style.opacity = '0.7';
-                }
+            // 2. Session storage me lock karein
+            sessionStorage.setItem('telegram_clicked', 'true');
 
-                // 3. 300ms ke baad Telegram par redirect karein
-                setTimeout(function() {
-                    window.location.href = telegramUrl;
-                }, 300);
+            // 3. Meta Pixel Events Trigger (Sirf 1 baar fire honge)
+            if (typeof fbq !== 'undefined') {
+                fbq('trackCustom', 'TelegramBtnClick'); 
+                fbq('track', 'Subscribe'); 
+                fbq('track', 'Lead'); 
+            }
+
+            // 4. Button ko disable aur loading state me set karein
+            if (btn) {
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.7';
+                btn.innerHTML = '⏳ Connecting...';
+            }
+
+            // 5. Redirection Delay (300ms)
+            setTimeout(function() {
+                window.location.href = telegramUrl;
+            }, 300);
+        }
+
+        // Toggle Modal Helper Function
+        function toggleModal(modalId) {
+            var modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.toggle('hidden');
             }
         }
+
+        // Back button se wapas aane par button text & click state restore karein
+        window.addEventListener('pageshow', function() {
+            var btn = document.getElementById('telegramLink');
+            if (btn && sessionStorage.getItem('telegram_clicked') === 'true') {
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
+                btn.innerHTML = '🚀 Join Free Telegram Channel';
+            }
+        });
     </script>
 
 </body>
